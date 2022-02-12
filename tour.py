@@ -1,4 +1,5 @@
 import os
+import time
 import collections
 import azure.storage.blob
 
@@ -7,19 +8,21 @@ URL = r'https://datavillagesa.blob.core.windows.net/northernlights?sv=2018-03-28
 
 container = azure.storage.blob.ContainerClient.from_container_url(URL)
 
+print('=== CONTAINER')
+print(URL)
+start = time.perf_counter()
 blobs = []
 for blob in container.list_blobs():
     blobs.append(blob)
+stop = time.perf_counter()
+print(f'Time to read: {stop-start:.2f} seconds')
+
+print('=== FILES')
 
 for blob in blobs:
     print(f'{blob.size:>20,} {blob.name}')
 
-total_size = sum(blob.size for blob in blobs)
-MB = 1024*1024
-TB = MB*MB
-
-print('=== TOTAL')
-print(f'{total_size:>20,} {len(blobs):>8} files ({total_size/MB:.2f} MB, {total_size/TB:.2f} TB)')
+print('=== FILETYPES')
 
 tally_bytes = collections.defaultdict(int)
 tally_count = collections.defaultdict(int)
@@ -28,7 +31,12 @@ for blob in blobs:
     ext = ext.upper()[1:]
     tally_bytes[ext] += blob.size
     tally_count[ext] += 1
-
-print('=== FILETYPES')
 for (ext,_) in sorted(tally_count.items(), key=lambda item: item[1], reverse=True):
     print(f'{tally_bytes[ext]:>20,} {tally_count[ext]:>8} {ext:<20}')
+
+print('=== TOTAL')
+
+total_size = sum(blob.size for blob in blobs)
+MB = 1024*1024
+TB = MB*MB
+print(f'{total_size:>20,} {len(blobs):>8} files ({total_size/MB:.2f} MB, {total_size/TB:.2f} TB)')
