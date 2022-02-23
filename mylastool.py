@@ -125,7 +125,7 @@ def main(argv):
     elif command == 'curves':
         printcurves(lines)
     else:
-        assert False
+        raise Exception("Unexpected command:" + command)
 
     return 0
 
