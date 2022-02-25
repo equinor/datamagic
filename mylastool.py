@@ -19,6 +19,12 @@ def listfiles(container, suffix=''):
     return lasfiles
 
 
+def printdirectory(files):
+    """Print a pretty directory listing of files returned by listfiles()."""
+    for ((idx, (size, name))) in enumerate(files):
+        print(f"{'[' + str(idx) + ']':<6} {size:>20} {name}")
+
+
 def readtextfile(container, filename):
     """Read given text file from container."""
     if not is_probably_a_las_file(filename):
@@ -107,8 +113,7 @@ def main(argv):
     lasfiles = listfiles(container, ".LAS")
 
     if argv[1] == 'list':
-        for ((idx, (size, name))) in enumerate(lasfiles):
-            print(f"{'[' + str(idx) + ']':<6} {size:>20} {name}")
+        printdirectory(lasfiles)
         return 0
 
     if len(argv) < 3 or argv[2] not in ['header', 'data', 'curves']:
