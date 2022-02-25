@@ -54,7 +54,7 @@ def printheadersection(lines):
 
 def datasection(lines):
     """Return the lines for the data section."""
-    return lines[sectionindex(lines, '~A'):]
+    return lines[sectionindex(lines, '~A')+1:]
 
 
 def printdatasection(lines):
