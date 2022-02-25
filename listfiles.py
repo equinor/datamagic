@@ -1,3 +1,5 @@
+"""List all files in a storage container."""
+
 import os
 import azure.storage.blob
 
