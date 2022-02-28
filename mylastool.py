@@ -5,12 +5,7 @@ import sys
 import azure.storage.blob
 
 
-def is_probably_a_las_file(filename):
-    """Check if filename has .LAS extension."""
-    return filename.endswith('.LAS')
-
-
-def listfiles(container, suffix=''):
+def list_files(container, suffix=''):
     """List files in a container, filter on given suffix."""
     files = []
     for blob in container.list_blobs():
@@ -19,16 +14,16 @@ def listfiles(container, suffix=''):
     return files
 
 
-def printdirectory(files):
-    """Print a pretty directory listing of files returned by listfiles()."""
+def print_directory(files):
+    """Print a pretty directory listing of files returned by list_files()."""
     for (size, name) in files:
         print(f"{size:>20} {name}")
 
 
-def readtextfile(container, filename):
+def read_lasfile(container, filename):
     """Read given text file from container."""
     if not filename.endswith(".LAS"):
-        raise Exception("Probably not a LAS file")
+        raise OSError("Probably not a LAS file")
     blob_client = container.get_blob_client(filename)
     data = blob_client.download_blob().content_as_bytes()
     lines = []
@@ -37,7 +32,7 @@ def readtextfile(container, filename):
     return lines
 
 
-def sectionindex(lines, prefix):
+def find_section_index(lines, prefix):
     """Find index of first line with given prefix."""
     idx = 0
     for line in lines:
@@ -47,32 +42,32 @@ def sectionindex(lines, prefix):
     return idx
 
 
-def headersection(lines):
+def get_header_section(lines):
     """Return the lines for the header section."""
-    return lines[0:sectionindex(lines, '~A')]
+    return lines[0:find_section_index(lines, '~A')]
 
 
-def printheadersection(lines):
+def print_header_section(lines):
     """Print the header section."""
-    for line in headersection(lines):
+    for line in get_header_section(lines):
         print(line)
 
 
-def datasection(lines):
+def get_data_section(lines):
     """Return the lines for the data section."""
-    return lines[sectionindex(lines, '~A')+1:]
+    return lines[find_section_index(lines, '~A')+1:]
 
 
-def printdatasection(lines):
+def print_data_section(lines):
     """Print the data section."""
-    for line in datasection(lines):
+    for line in get_data_section(lines):
         print(line)
 
 
-def curvemnemonics(lines):
+def get_curve_mnemonics(lines):
     """Return list of curve mnemonics."""
-    startidx = sectionindex(lines, "~C")
-    endidx = sectionindex(lines[startidx+1:], "~")
+    startidx = find_section_index(lines, "~C")
+    endidx = find_section_index(lines[startidx+1:], "~")
     mnemonics = []
     for line in lines[startidx+1:startidx+1+endidx]:
         if line.startswith('#'):
@@ -82,18 +77,18 @@ def curvemnemonics(lines):
     return mnemonics
 
 
-def printcurves(lines):
+def print_curve_mnemonics(lines):
     """Print the curve mnemonics."""
-    print(*curvemnemonics(lines))
+    print(*get_curve_mnemonics(lines))
 
 
-def getcontainer():
+def get_container():
     """Create a container by using the CONTAINER_URL env variable."""
     url = os.environ['CONTAINER_URL']
     return azure.storage.blob.ContainerClient.from_container_url(url)
 
 
-def printhelp_and_die():
+def print_helpmessage():
     """Print help message and call exit."""
     app = sys.argv[0]
     print(f"""usage: {app} <command> [filename]
@@ -101,38 +96,39 @@ eg:    {app} list
        {app} header <filename>
        {app} data <filename>
        {app} curves <filename>""")
-    sys.exit(1)
 
 
 def main(argv):
     """Parse as list of arguments and do magic."""
-    container = getcontainer()
+    container = get_container()
 
     if len(argv) == 1 or argv[1] not in ('list', 'header', 'data', 'curves'):
-        printhelp_and_die()
+        print_helpmessage()
+        return 1
 
     command = argv[1]
 
     if command == 'list':
-        lasfiles = listfiles(container, ".LAS")
-        printdirectory(lasfiles)
+        lasfiles = list_files(container, ".LAS")
+        print_directory(lasfiles)
         return 0
 
     if len(argv) != 3:
         print('error: expected a filename')
-        printhelp_and_die()
+        print_helpmessage()
+        return 1
 
     filename = argv[2]
-    lines = readtextfile(container, filename)
+    lines = read_lasfile(container, filename)
 
     if command == 'header':
-        printheadersection(lines)
+        print_header_section(lines)
     elif command == 'data':
-        printdatasection(lines)
+        print_data_section(lines)
     elif command == 'curves':
-        printcurves(lines)
+        print_curve_mnemonics(lines)
     else:
-        raise Exception("Unexpected command:" + command)
+        raise OSError("Unexpected command:" + command)
 
     return 0
 
