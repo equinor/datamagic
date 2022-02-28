@@ -12,23 +12,23 @@ def is_probably_a_las_file(filename):
 
 def listfiles(container, suffix=''):
     """List files in a container, filter on given suffix."""
-    lasfiles = []
+    files = []
     for blob in container.list_blobs():
         if blob.name.endswith(suffix):
-            lasfiles.append((blob.size, blob.name))
-    return lasfiles
+            files.append((blob.size, blob.name))
+    return files
 
 
 def printdirectory(files):
     """Print a pretty directory listing of files returned by listfiles()."""
-    for ((idx, (size, name))) in enumerate(files):
-        print(f"{'[' + str(idx) + ']':<6} {size:>20} {name}")
+    for (size, name) in files:
+        print(f"{size:>20} {name}")
 
 
 def readtextfile(container, filename):
     """Read given text file from container."""
-    if not is_probably_a_las_file(filename):
-        raise Exception("Probably not a .LAS file")
+    if not filename.endswith(".LAS"):
+        raise Exception("Probably not a LAS file")
     blob_client = container.get_blob_client(filename)
     data = blob_client.download_blob().content_as_bytes()
     lines = []
@@ -96,31 +96,33 @@ def getcontainer():
 def printhelp_and_die():
     """Print help message and call exit."""
     app = sys.argv[0]
-    print(f"""usage: {app} <"list"|filename|idx> [<command>]
+    print(f"""usage: {app} <command> [filename]
 eg:    {app} list
-       {app} 12 header
-       {app} 12 data
-       {app} 12 curves""")
+       {app} header <filename>
+       {app} data <filename>
+       {app} curves <filename>""")
     sys.exit(1)
 
 
 def main(argv):
     """Parse as list of arguments and do magic."""
     container = getcontainer()
-    if len(argv) == 1:
+
+    if len(argv) == 1 or argv[1] not in ('list', 'header', 'data', 'curves'):
         printhelp_and_die()
 
-    lasfiles = listfiles(container, ".LAS")
+    command = argv[1]
 
-    if argv[1] == 'list':
+    if command == 'list':
+        lasfiles = listfiles(container, ".LAS")
         printdirectory(lasfiles)
         return 0
 
-    if len(argv) < 3 or argv[2] not in ['header', 'data', 'curves']:
+    if len(argv) != 3:
+        print('error: expected a filename')
         printhelp_and_die()
 
-    filename = lasfiles[int(argv[1])][1] if argv[1].isdigit() else argv[1]
-    command = argv[2]
+    filename = argv[2]
     lines = readtextfile(container, filename)
 
     if command == 'header':
