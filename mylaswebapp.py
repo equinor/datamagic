@@ -6,7 +6,7 @@ import mylastool
 app = flask.Flask(__name__)
 
 container = mylastool.get_container()
-lasfiles = mylastool.list_files(container, ".LAS")
+lasfiles = mylastool.list_files(container, suffix=".LAS")
 
 
 @app.route('/')

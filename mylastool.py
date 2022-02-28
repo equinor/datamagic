@@ -5,7 +5,7 @@ import sys
 import azure.storage.blob
 
 
-def list_files(container, suffix=''):
+def list_files(container, *, suffix=''):
     """List files in a container, filter on given suffix."""
     files = []
     for blob in container.list_blobs():
@@ -109,7 +109,7 @@ def main(argv):
     command = argv[1]
 
     if command == 'list':
-        lasfiles = list_files(container, ".LAS")
+        lasfiles = list_files(container, suffix=".LAS")
         print_directory(lasfiles)
         return 0
 
