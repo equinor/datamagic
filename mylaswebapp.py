@@ -5,8 +5,8 @@ import mylastool
 
 app = flask.Flask(__name__)
 
-container = mylastool.getcontainer()
-lasfiles = mylastool.listfiles(container, ".LAS")
+container = mylastool.get_container()
+lasfiles = mylastool.list_files(container, ".LAS")
 
 
 @app.route('/')
@@ -30,8 +30,8 @@ def index():
 def header(idx):
     """Return header of LAS file from container."""
     (_, filename) = lasfiles[int(idx)]
-    lasfile = mylastool.readtextfile(container, filename)
-    headersection = mylastool.headersection(lasfile)
+    lasfile = mylastool.read_lasfile(container, filename)
+    headersection = mylastool.get_header_section(lasfile)
     lines = []
     lines.append('<!doctype html>')
     lines.append('<html lang=en>')
