@@ -1,3 +1,4 @@
 a = 6
-b = 7
-print(f"The answer is {a*b}!")
+b = 9
+c = a * b
+print(f"The answer is {c}!")
