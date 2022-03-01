@@ -6,7 +6,7 @@ import mylastool
 app = flask.Flask(__name__)
 
 container = mylastool.get_container()
-lasfiles = mylastool.list_files(container, suffix=".LAS")
+lasfiles = mylastool.get_list_of_lasfiles(container)
 
 
 @app.route('/')
@@ -18,8 +18,8 @@ def index():
     lines.append('<head><meta charset=utf-8><title>My webapp</title></head>')
     lines.append('<body>')
     lines.append('<pre>')
-    for (idx, (size, filename)) in enumerate(lasfiles):
-        lines.append(f'{size:>20} <a href="/header/{idx}">{filename}</a>')
+    for (idx, filename) in enumerate(lasfiles):
+        lines.append(f'<a href="/header/{idx}">{filename}</a>')
     lines.append('</pre>')
     lines.append('</body>')
     lines.append('</html>')
@@ -29,7 +29,7 @@ def index():
 @app.route('/header/<idx>')
 def header(idx):
     """Return header of LAS file from container."""
-    (_, filename) = lasfiles[int(idx)]
+    filename = lasfiles[int(idx)]
     lasfile = mylastool.read_lasfile(container, filename)
     headersection = mylastool.get_header_section(lasfile)
     lines = []
