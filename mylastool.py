@@ -7,8 +7,8 @@ import azure.storage.blob
 
 def get_container():
     """Creating container from CONTAINER_URL."""
-    URL = os.environ['CONTAINER_URL']
-    return azure.storage.blob.ContainerClient.from_container_url(URL)
+    url = os.environ['CONTAINER_URL']
+    return azure.storage.blob.ContainerClient.from_container_url(url)
 
 
 def get_list_of_lasfiles(container):
@@ -21,12 +21,14 @@ def get_list_of_lasfiles(container):
 
 
 def print_list_of_lasfiles(container):
+    """Print pretty directory listing LAS file in container."""
     files = get_list_of_lasfiles(container)
     for name in files:
         print(name)
 
 
 def read_lasfile(container, filename):
+    """Read given LAS file from container."""
     if not filename.endswith('.LAS'):
         raise OSError("Probably not a LAS file")
     blob_client = container.get_blob_client(filename)
@@ -38,6 +40,7 @@ def read_lasfile(container, filename):
 
 
 def find_section_index(lines, prefix):
+    """Find index of first line with given prefix."""
     idx = 0
     for line in lines:
         if line.startswith(prefix):
@@ -47,30 +50,36 @@ def find_section_index(lines, prefix):
 
 
 def get_header_section(lines):
+    """Return the lines for the header section."""
     return lines[:find_section_index(lines, '~A')]
 
 
 def get_data_section(lines):
+    """Return the lines for the data section."""
     return lines[find_section_index(lines, '~A')+1:]
 
 
 def print_header_section(lines):
+    """Print the header section."""
     for line in get_header_section(lines):
         print(line)
 
 
 def print_data_section(lines):
+    """Print the data section."""
     for line in get_data_section(lines):
         print(line)
 
 
 def get_curve_section(lines):
+    """Return the lines for the curve section."""
     start_idx = find_section_index(lines, '~C')
     end_idx = find_section_index(lines[start_idx+1:], '~')
     return lines[start_idx+1:start_idx+1+end_idx]
 
 
 def get_curve_mnemonics(lines):
+    """Get a list of curve names."""
     names = []
     for line in get_curve_section(lines):
         if line.strip().startswith('#'):
@@ -80,6 +89,7 @@ def get_curve_mnemonics(lines):
 
 
 def print_curve_mnemonics(lines):
+    """Pretty print the curve names."""
     print(*get_curve_mnemonics(lines), sep=' | ')
 
 
@@ -95,6 +105,7 @@ def print_helpmessage():
 
 
 def main(argv):
+    """Parse a list of arguments and do magic."""
 
     if len(argv) < 2:
         print_helpmessage()
@@ -140,3 +151,7 @@ def main(argv):
 
 if __name__ == '__main__':
     sys.exit(main(sys.argv))
+
+# References:
+# https://www.cwls.org/wp-content/uploads/2017/02/Las2_Update_Feb2017.pdf
+# https://docs.microsoft.com/en-us/python/api/azure-storage-blob/?view=azure-python
