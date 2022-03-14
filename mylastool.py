@@ -1,22 +1,30 @@
+"""My tool for working with LAS files in an azure storage container."""
+
 import os
 import sys
 import azure.storage.blob
 
+
 def get_container():
+    """Creating container from CONTAINER_URL."""
     URL = os.environ['CONTAINER_URL']
     return azure.storage.blob.ContainerClient.from_container_url(URL)
 
+
 def get_list_of_lasfiles(container):
+    """Get list of LAS files in a container."""
     files = []
     for blob in container.list_blobs():
         if blob.name.endswith('.LAS'):
             files.append(blob.name)
     return files
 
+
 def print_list_of_lasfiles(container):
     files = get_list_of_lasfiles(container)
     for name in files:
         print(name)
+
 
 def read_lasfile(container, filename):
     if not filename.endswith('.LAS'):
@@ -28,6 +36,7 @@ def read_lasfile(container, filename):
         lines.append(line.decode("ascii", errors='ignore'))
     return lines
 
+
 def find_section_index(lines, prefix):
     idx = 0
     for line in lines:
@@ -36,24 +45,30 @@ def find_section_index(lines, prefix):
         idx += 1
     return idx
 
+
 def get_header_section(lines):
     return lines[:find_section_index(lines, '~A')]
 
+
 def get_data_section(lines):
     return lines[find_section_index(lines, '~A')+1:]
+
 
 def print_header_section(lines):
     for line in get_header_section(lines):
         print(line)
 
+
 def print_data_section(lines):
     for line in get_data_section(lines):
         print(line)
+
 
 def get_curve_section(lines):
     start_idx = find_section_index(lines, '~C')
     end_idx = find_section_index(lines[start_idx+1:], '~')
     return lines[start_idx+1:start_idx+1+end_idx]
+
 
 def get_curve_mnemonics(lines):
     names = []
@@ -63,8 +78,10 @@ def get_curve_mnemonics(lines):
         names.append(line.split('.')[0].strip())
     return names
 
+
 def print_curve_mnemonics(lines):
     print(*get_curve_mnemonics(lines), sep=' | ')
+
 
 def print_helpmessage():
     """Print help message."""
@@ -75,6 +92,7 @@ def print_helpmessage():
     print("    python mylastool.py data   A/B/C.LAS")
     print("    python mylastool.py curves A/B/C.LAS")
     print("also, remember to set CONTAINER_URL")
+
 
 def main(argv):
 
@@ -118,6 +136,7 @@ def main(argv):
     print('Huh?')
     print_helpmessage()
     return 1
+
 
 if __name__ == '__main__':
     sys.exit(main(sys.argv))
