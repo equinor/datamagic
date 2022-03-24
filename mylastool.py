@@ -1,4 +1,5 @@
 import os
+import sys
 import azure.storage.blob
 
 def get_container():
@@ -53,17 +54,56 @@ def print_data_section(lines):
     for line in get_data_section(lines):
         print(line)
 
-def main():
+
+def print_helpmessage():
+    """Print help message."""
+    print("usage: mylastool.py <command> [file]")
+    print("examples:")
+    print("    python mylastool.py list")
+    print("    python mylastool.py header A/B/C.LAS")
+    print("    python mylastool.py data   A/B/C.LAS")
+    print("also, remember to set CONTAINER_URL")
+
+def main(argv):
+
+    if len(argv) < 2:
+        print_helpmessage()
+        return 1
+
+    command = argv[1]
+
+    if command not in ('list', 'header', 'data'):
+        print('error: unknown command')
+        print_helpmessage()
+        return 1
+
     container = get_container()
-    #print_lasfiles(container)
-    lasfile = '31_5-7 Eos/07.Borehole_Seismic/TZV_TIME_SYNSEIS_2020-01-17_2.LAS'
+
+    if command == 'list':
+        print_lasfiles(container)
+        return 0
+
+    if len(argv) < 3:
+        print('error: expected a filename')
+        print_helpmessage()
+        return 1
+
+    lasfile = argv[2]
     lines = read_lasfile(container, lasfile)
-    #print_data_section(lines)
-    print_header_section(lines)
-    #for line in lines:
-    #    print(line)
+
+    if command == 'header':
+        print_header_section(lines)
+        return 0
+
+    if command == 'data':
+        print_data_section(lines)
+        return 0
+
+    print('Huh?')
+    print_helpmessage()
+    return 1
 
 if __name__ == '__main__':
-    main()
+    sys.exit(main(sys.argv))
 
 
