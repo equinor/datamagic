@@ -5,10 +5,13 @@ def get_container():
     url = os.environ['CONTAINER_URL']
     return azure.storage.blob.ContainerClient.from_container_url(url)
 
+def is_lasfile(filename):
+    return filename.endswith('.LAS')
+
 def get_list_of_lasfiles(container):
     files = []
     for blob in container.list_blobs():
-        if blob.name.endswith('.LAS'):
+        if is_lasfile(blob.name):
             files.append(blob.name)
     return files
 
