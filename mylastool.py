@@ -20,6 +20,9 @@ def print_lasfiles(container):
         print(name)
 
 def read_lasfile(container, filename):
+    """Read given LAS file from container."""
+    if not filename.endswith('.LAS'):
+        raise OSError("Probably not a LAS file")
     blob_client = container.get_blob_client(filename)
     data = blob_client.download_blob().content_as_bytes()
     lines = []
