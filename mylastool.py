@@ -1,24 +1,31 @@
+"""My tool for working with LAS files in an azure storage container."""
+
 import os
 import sys
 import azure.storage.blob
 
+
 def get_container():
+    """Creating container from CONTAINER_URL."""
     url = os.environ['CONTAINER_URL']
     return azure.storage.blob.ContainerClient.from_container_url(url)
 
-def is_lasfile(filename):
-    return filename.endswith('.LAS')
 
 def get_list_of_lasfiles(container):
+    """Get list of LAS files in a container."""
     files = []
     for blob in container.list_blobs():
-        if is_lasfile(blob.name):
+        if blob.name.endswith('.LAS'):
             files.append(blob.name)
     return files
 
-def print_lasfiles(container):
-    for name in get_list_of_lasfiles(container):
+
+def print_list_of_lasfiles(container):
+    """Print pretty directory listing LAS file in container."""
+    files = get_list_of_lasfiles(container)
+    for name in files:
         print(name)
+
 
 def read_lasfile(container, filename):
     """Read given LAS file from container."""
@@ -33,6 +40,7 @@ def read_lasfile(container, filename):
 
 
 def find_section_index(lines, prefix):
+    """Find index of first line with given prefix."""
     idx = 0
     for line in lines:
         if line.startswith(prefix):
@@ -40,19 +48,49 @@ def find_section_index(lines, prefix):
         idx += 1
     return idx
 
+
 def get_header_section(lines):
+    """Return the lines for the header section."""
     return lines[:find_section_index(lines, '~A')]
 
+
+def get_data_section(lines):
+    """Return the lines for the data section."""
+    return lines[find_section_index(lines, '~A')+1:]
+
+
 def print_header_section(lines):
+    """Print the header section."""
     for line in get_header_section(lines):
         print(line)
 
-def get_data_section(lines):
-    return lines[find_section_index(lines, '~A')+1:]
 
 def print_data_section(lines):
+    """Print the data section."""
     for line in get_data_section(lines):
         print(line)
+
+
+def get_curve_section(lines):
+    """Return the lines for the curve section."""
+    start_idx = find_section_index(lines, '~C')
+    end_idx = find_section_index(lines[start_idx+1:], '~')
+    return lines[start_idx+1:start_idx+1+end_idx]
+
+
+def get_curve_mnemonics(lines):
+    """Get a list of curve names."""
+    names = []
+    for line in get_curve_section(lines):
+        if line.strip().startswith('#'):
+            continue
+        names.append(line.split('.')[0].strip())
+    return names
+
+
+def print_curve_mnemonics(lines):
+    """Pretty print the curve names."""
+    print(*get_curve_mnemonics(lines), sep=' | ')
 
 
 def print_helpmessage():
@@ -62,9 +100,12 @@ def print_helpmessage():
     print("    python mylastool.py list")
     print("    python mylastool.py header A/B/C.LAS")
     print("    python mylastool.py data   A/B/C.LAS")
+    print("    python mylastool.py curves A/B/C.LAS")
     print("also, remember to set CONTAINER_URL")
 
+
 def main(argv):
+    """Parse a list of arguments and do magic."""
 
     if len(argv) < 2:
         print_helpmessage()
@@ -72,7 +113,7 @@ def main(argv):
 
     command = argv[1]
 
-    if command not in ('list', 'header', 'data'):
+    if command not in ('list', 'header', 'data', 'curves'):
         print('error: unknown command')
         print_helpmessage()
         return 1
@@ -80,7 +121,7 @@ def main(argv):
     container = get_container()
 
     if command == 'list':
-        print_lasfiles(container)
+        print_list_of_lasfiles(container)
         return 0
 
     if len(argv) < 3:
@@ -99,11 +140,18 @@ def main(argv):
         print_data_section(lines)
         return 0
 
+    if command == 'curves':
+        print_curve_mnemonics(lines)
+        return 0
+
     print('Huh?')
     print_helpmessage()
     return 1
 
+
 if __name__ == '__main__':
     sys.exit(main(sys.argv))
 
-
+# References:
+# https://www.cwls.org/wp-content/uploads/2017/02/Las2_Update_Feb2017.pdf
+# https://docs.microsoft.com/en-us/python/api/azure-storage-blob/?view=azure-python
