@@ -8,8 +8,8 @@ import flask
 # Create a connection into an Azure Storage Blob
 #
 
-URL = os.environ['CONTAINER_URL']
-container = azure.storage.blob.ContainerClient.from_container_url(URL)
+url = os.environ['CONTAINER_URL']
+container = azure.storage.blob.ContainerClient.from_container_url(url)
 print(f"Connected to storage blob")
 
 #
