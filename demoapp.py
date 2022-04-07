@@ -11,6 +11,7 @@ import flask
 url = os.environ['CONTAINER_URL']
 container = azure.storage.blob.ContainerClient.from_container_url(url)
 print(f"Connected to storage blob")
+input()
 
 #
 # Get list of all LAS files
@@ -21,6 +22,7 @@ for blob in container.list_blobs():
     if blob.name.endswith(".LAS"):
         files.append(blob.name)
 print(f"Found {len(files)} LAS files")
+input()
 
 #
 # Get path for a particular LAS file
@@ -32,6 +34,7 @@ for name in files:
         filename = name
         break
 print(f"Filename: {filename}")
+input()
 
 #
 # Read LAS file into memory
@@ -43,6 +46,7 @@ lines = []
 for line in data.splitlines():
     lines.append(line.decode("ascii", errors="ignore"))
 print(f"Read {len(lines)} lines of text")
+input()
 
 #
 # Find index of data section
@@ -54,6 +58,7 @@ for line in lines:
         break
     idx += 1
 print(f"Data section starts at line {idx}")
+input()
 
 #
 # Extract a curve
@@ -65,6 +70,7 @@ for row in lines[idx+1:]:
     cell = cols[1]
     curve.append(float(cell))
 print(f"Extracted {len(curve)} values. minvalue={min(curve)}, maxvalue={max(curve)}")
+input()
 
 #
 # Clean up values in curve
@@ -74,6 +80,7 @@ import numpy as np
 curve = np.array(curve)
 curve = np.where(curve==-999.25, np.nan, curve)
 print(f"Cleaned up curve")
+input()
 
 #
 # Plot curve
@@ -83,6 +90,7 @@ import matplotlib.pyplot as plt
 plt.plot(curve)
 plt.savefig('demoapp.png')
 print(f"Curve plotted")
+input()
 
 #
 # Start webapp to serve the plot
