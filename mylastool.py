@@ -6,7 +6,7 @@ import azure.storage.blob
 
 
 def get_container_url():
-    """Get container from CONTAINER_URL."""
+    """Get url for a container"""
     return os.environ['CONTAINER_URL']
 
 
