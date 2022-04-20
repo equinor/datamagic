@@ -36,7 +36,6 @@ def get_header_section(lines):
     return headerlines
 
 def get_data_section(lines):
-    datalines = []
     idx = 0
     for line in lines:
         if line.startswith("~A"):
