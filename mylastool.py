@@ -17,8 +17,11 @@ def print_list_of_lasfiles(container):
     for file in lasfiles:
         print(file)
 
-if __name__ == '__main__':
+def main():
     container = get_container()
     print_list_of_lasfiles(container)
+
+if __name__ == '__main__':
+    main()
 
 
