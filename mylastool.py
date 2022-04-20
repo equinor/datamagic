@@ -18,6 +18,8 @@ def print_list_of_lasfiles(container):
         print(file)
 
 def read_lasfile(container, filename):
+    if not filename.endswith(".LAS"):
+        raise OSError("Probably not a LAS file")
     blob_client = container.get_blob_client(filename)
     data = blob_client.download_blob().content_as_bytes()
     lines = []
