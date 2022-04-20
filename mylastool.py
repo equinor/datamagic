@@ -5,9 +5,13 @@ import sys
 import azure.storage.blob
 
 
-def get_container():
-    """Creating container from CONTAINER_URL."""
-    url = os.environ['CONTAINER_URL']
+def get_container_url():
+    """Get container from CONTAINER_URL."""
+    return os.environ['CONTAINER_URL']
+
+
+def get_container_from_url(url):
+    """Creating container from a url"""
     return azure.storage.blob.ContainerClient.from_container_url(url)
 
 
@@ -118,7 +122,8 @@ def main(argv):
         print_helpmessage()
         return 1
 
-    container = get_container()
+    url = get_container_url()
+    container = get_container_from_url(url)
 
     if command == 'list':
         print_list_of_lasfiles(container)
