@@ -42,13 +42,11 @@ def get_data_section(lines):
     return lines[find_section_index(lines, "~A"):]
 
 def print_header_section(lines):
-    headerlines = get_header_section(lines)
-    for line in headerlines:
+    for line in get_header_section(lines):
         print(line)
 
 def print_data_section(lines):
-    datalines = get_data_section(lines)
-    for line in datalines:
+    for line in get_data_section(lines):
         print(line)
 
 def main():
