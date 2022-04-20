@@ -27,12 +27,16 @@ def read_lasfile(container, filename):
         lines.append(line.decode("ascii", errors="ignore"))
     return lines
 
+def print_header_section(lines):
+    for line in lines:
+        if line.startswith("~A"):
+            break
+        print(line)
+    
 def main():
     container = get_container()
     lines = read_lasfile(container, "31_5-7 Eos/07.Borehole_Seismic/TZV_TIME_SYNSEIS_2020-01-17_2.LAS")
-    for line in lines:
-        print(line)
-    #print_list_of_lasfiles(container)
+    print_header_section(lines)
 
 if __name__ == '__main__':
     main()
