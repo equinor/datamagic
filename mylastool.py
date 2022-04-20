@@ -27,21 +27,19 @@ def read_lasfile(container, filename):
         lines.append(line.decode("ascii", errors="ignore"))
     return lines
 
-def get_header_section(lines):
-    headerlines = []
-    for line in lines:
-        if line.startswith("~A"):
-            break
-        headerlines.append(line)
-    return headerlines
-
-def get_data_section(lines):
+def find_section_index(lines, prefix):
     idx = 0
     for line in lines:
-        if line.startswith("~A"):
+        if line.startswith(prefix):
             break
         idx += 1
-    return lines[idx+1:]
+    return idx
+
+def get_header_section(lines):
+    return lines[:find_section_index(lines, "~A")]
+
+def get_data_section(lines):
+    return lines[find_section_index(lines, "~A"):]
 
 def print_header_section(lines):
     headerlines = get_header_section(lines)
@@ -56,8 +54,8 @@ def print_data_section(lines):
 def main():
     container = get_container()
     lines = read_lasfile(container, "31_5-7 Eos/07.Borehole_Seismic/TZV_TIME_SYNSEIS_2020-01-17_2.LAS")
-    #print_header_section(lines)
-    print_data_section(lines)
+    print_header_section(lines)
+    #print_data_section(lines)
 
 if __name__ == '__main__':
     main()
