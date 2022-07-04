@@ -2,6 +2,7 @@
 
 import os
 import azure.storage.blob
+import sys
 
 
 def get_container():
@@ -25,10 +26,36 @@ def print_list_of_lasfiles(container):
         print(name)
 
 
-def main():
+def read_lasfile(container, filename):
+    """Read given LAS file from container."""
+    if not filename.endswith('.LAS'):
+        raise OSError("Probably not a LAS file")
+    blob_client = container.get_blob_client(filename)
+    data = blob_client.download_blob().content_as_bytes()
+    lines = []
+    for line in data.splitlines():
+        lines.append(line.decode("ascii", errors='ignore'))
+    return lines
+
+
+def main(argv):
     """My LAS file tool."""
+
     container = get_container()
-    print_list_of_lasfiles(container)
+
+    if len(argv) == 1:
+        print_list_of_lasfiles(container)
+        return 0
+
+    if len(argv) == 2:
+        filename = argv[1]
+        lines = read_lasfile(container, filename)
+        for line in lines:
+            print(line)
+        return 0
+
+    print('Unknown arguments')
+    return 1
 
 if __name__ == '__main__':
-    main()
+    sys.exit(main(sys.argv))
