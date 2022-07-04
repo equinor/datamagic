@@ -38,6 +38,12 @@ def read_lasfile(container, filename):
     return lines
 
 
+def print_header_section(lines):
+    for line in lines:
+        if line.startswith('~A'):
+            break
+        print(line)
+        
 def main(argv):
     """My LAS file tool."""
 
@@ -50,8 +56,7 @@ def main(argv):
     if len(argv) == 2:
         filename = argv[1]
         lines = read_lasfile(container, filename)
-        for line in lines:
-            print(line)
+        print_header_section(lines)
         return 0
 
     print('Unknown arguments')
