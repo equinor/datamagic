@@ -4,7 +4,7 @@ app = flask.Flask(__name__)
 
 @app.route('/')
 def index():
-    return 'This is data magic!'
+    return "This is data magic!"
 
 def main():
     app.run()
