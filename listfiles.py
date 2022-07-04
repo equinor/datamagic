@@ -7,4 +7,3 @@ container = azure.storage.blob.ContainerClient.from_container_url(url)
 
 for blob in container.list_blobs():
     print(f"{blob.size:<20}{blob.name}")
-
