@@ -69,25 +69,55 @@ def print_data_section(lines):
     for line in get_data_section(lines):
         print(line)
 
+def print_helpmessage():
+    """Print help message."""
+    print("usage: mylastool.py <command> [file]")
+    print("examples:")
+    print("    python mylastool.py list")
+    print("    python mylastool.py header A/B/C.LAS")
+    print("    python mylastool.py data   A/B/C.LAS")
+    print("also, remember to set CONTAINER_URL")
+
 
 def main(argv):
-    """My LAS file tool."""
+    """Parse as list of arguments and do magic."""
+    if len(argv) < 2:
+        print_helpmessage()
+        return 1
+
+    command = argv[1]
+
+    if command not in ('list', 'header', 'data'):
+        print('error: unknown command')
+        print_helpmessage()
+        return 1
 
     container = get_container()
 
-    if len(argv) == 1:
+    if command == 'list':
         print_list_of_lasfiles(container)
         return 0
 
-    if len(argv) == 2:
-        filename = argv[1]
-        lines = read_lasfile(container, filename)
-        #print_header_section(lines)
+    if len(argv) < 3:
+        print('error: expected a filename')
+        print_helpmessage()
+        return 1
+
+    lasfile = argv[2]
+    lines = read_lasfile(container, lasfile)
+
+    if command == 'header':
+        print_header_section(lines)
+        return 0
+
+    if command == 'data':
         print_data_section(lines)
         return 0
 
-    print('Unknown arguments')
+    print('Huh?')
+    print_helpmessage()
     return 1
+
 
 if __name__ == '__main__':
     sys.exit(main(sys.argv))
