@@ -1,13 +1,17 @@
-"""My LAS tool."""
+"""My tool for working with LAS files in an azure storage container."""
 
 import os
-import azure.storage.blob
 import sys
+import azure.storage.blob
 
 
-def get_container():
-    """Get a handle to an Azure Storage Blob container."""
-    url = os.environ['CONTAINER_URL']
+def get_container_url():
+    """Get url for a container"""
+    return os.environ['CONTAINER_URL']
+
+
+def get_container_from_url(url):
+    """Creating container from a url"""
     return azure.storage.blob.ContainerClient.from_container_url(url)
 
 
@@ -21,8 +25,9 @@ def get_list_of_lasfiles(container):
 
 
 def print_list_of_lasfiles(container):
-    """Print pretty directory listing of LAS files in a container."""
-    for name in get_list_of_lasfiles(container):
+    """Print pretty directory listing LAS file in container."""
+    files = get_list_of_lasfiles(container)
+    for name in files:
         print(name)
 
 
@@ -69,6 +74,29 @@ def print_data_section(lines):
     for line in get_data_section(lines):
         print(line)
 
+
+def get_curve_section(lines):
+    """Return the lines for the curve section."""
+    start_idx = find_section_index(lines, '~C')
+    end_idx = find_section_index(lines[start_idx+1:], '~')
+    return lines[start_idx+1:start_idx+1+end_idx]
+
+
+def get_curve_mnemonics(lines):
+    """Get a list of curve names."""
+    names = []
+    for line in get_curve_section(lines):
+        if line.strip().startswith('#'):
+            continue
+        names.append(line.split('.')[0].strip())
+    return names
+
+
+def print_curve_mnemonics(lines):
+    """Pretty print the curve names."""
+    print(*get_curve_mnemonics(lines), sep=' | ')
+
+
 def print_helpmessage():
     """Print help message."""
     print("usage: mylastool.py <command> [file]")
@@ -76,23 +104,26 @@ def print_helpmessage():
     print("    python mylastool.py list")
     print("    python mylastool.py header A/B/C.LAS")
     print("    python mylastool.py data   A/B/C.LAS")
+    print("    python mylastool.py curves A/B/C.LAS")
     print("also, remember to set CONTAINER_URL")
 
 
 def main(argv):
-    """Parse as list of arguments and do magic."""
+    """Parse a list of arguments and do magic."""
+
     if len(argv) < 2:
         print_helpmessage()
         return 1
 
     command = argv[1]
 
-    if command not in ('list', 'header', 'data'):
+    if command not in ('list', 'header', 'data', 'curves'):
         print('error: unknown command')
         print_helpmessage()
         return 1
 
-    container = get_container()
+    url = get_container_url()
+    container = get_container_from_url(url)
 
     if command == 'list':
         print_list_of_lasfiles(container)
@@ -114,6 +145,10 @@ def main(argv):
         print_data_section(lines)
         return 0
 
+    if command == 'curves':
+        print_curve_mnemonics(lines)
+        return 0
+
     print('Huh?')
     print_helpmessage()
     return 1
@@ -121,3 +156,7 @@ def main(argv):
 
 if __name__ == '__main__':
     sys.exit(main(sys.argv))
+
+# References:
+# https://www.cwls.org/wp-content/uploads/2017/02/Las2_Update_Feb2017.pdf
+# https://docs.microsoft.com/en-us/python/api/azure-storage-blob/?view=azure-python
