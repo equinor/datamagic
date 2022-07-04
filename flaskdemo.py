@@ -4,7 +4,7 @@ app = flask.Flask(__name__)
 
 @app.route('/')
 def index():
-    return 'This is <a href="http://vg.no">data magic</a>!'
+    return 'This is data magic!'
 
 def main():
     app.run()
