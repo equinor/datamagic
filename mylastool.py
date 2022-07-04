@@ -38,12 +38,38 @@ def read_lasfile(container, filename):
     return lines
 
 
-def print_header_section(lines):
+def find_section_index(lines, prefix):
+    """Find index of first line with given prefix."""
+    idx = 0
     for line in lines:
-        if line.startswith('~A'):
+        if line.startswith(prefix):
             break
+        idx += 1
+    return idx
+
+
+def get_header_section(lines):
+    """Return the lines for the header section."""
+    return lines[:find_section_index(lines, '~A')]
+
+
+def get_data_section(lines):
+    """Return the lines for the data section."""
+    return lines[find_section_index(lines, '~A')+1:]
+
+
+def print_header_section(lines):
+    """Print the header section."""
+    for line in get_header_section(lines):
         print(line)
-        
+
+
+def print_data_section(lines):
+    """Print the data section."""
+    for line in get_data_section(lines):
+        print(line)
+
+
 def main(argv):
     """My LAS file tool."""
 
@@ -56,7 +82,8 @@ def main(argv):
     if len(argv) == 2:
         filename = argv[1]
         lines = read_lasfile(container, filename)
-        print_header_section(lines)
+        #print_header_section(lines)
+        print_data_section(lines)
         return 0
 
     print('Unknown arguments')
