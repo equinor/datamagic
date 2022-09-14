@@ -34,6 +34,15 @@ def print_header_section(lines):
             break
         print(line)
 
+def print_data_section(lines):
+    idx = 0
+    for line in lines:
+        if line.startswith('~A'):
+            break
+        idx += 1
+    for line in lines[idx+1:]:
+        print(line)
+
 def main():
     container = get_container()
     #files = get_list_of_lasfiles(container)
@@ -41,7 +50,8 @@ def main():
 
     lasfile = '31_5-7 Eos/07.Borehole_Seismic/TZV_TIME_SYNSEIS_2020-01-17_2.LAS'
     lines = read_lasfile(container, lasfile)
-    print_header_section(lines)
+    #print_header_section(lines)
+    print_data_section(lines)
 
 if __name__ == '__main__':
     main()
