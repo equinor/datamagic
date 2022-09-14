@@ -25,7 +25,7 @@ def read_lasfile(container, filename):
     data = blob_client.download_blob().content_as_bytes()
     lines = []
     for line in data.splitlines():
-        lines.append(line.decode("ascii", errors='ignore'))
+        lines.append(line.decode('ascii', errors='ignore'))
     return lines
 
 def print_header_section(lines):
