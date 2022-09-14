@@ -6,12 +6,12 @@ import azure.storage.blob
 
 
 def get_container_url():
-    """Get url for a container"""
+    """Get url for a container."""
     return os.environ['CONTAINER_URL']
 
 
 def get_container_from_url(url):
-    """Creating container from a url"""
+    """Create container from a url."""
     return azure.storage.blob.ContainerClient.from_container_url(url)
 
 
@@ -87,7 +87,6 @@ def print_helpmessage():
 
 def main(argv):
     """Parse a list of arguments and do magic."""
-
     if len(argv) < 2:
         print_helpmessage()
         return 1
