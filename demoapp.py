@@ -1,3 +1,14 @@
+# Before running this program, you might need to do:
+#
+#     python -m pip install azure-storage-blob numpy matplotlib flask
+#
+# and the CONTAINER_URL you can get from:
+#
+#     https://data.equinor.com/dataset/NorthernLights
+#
+# Enjoy!
+#
+
 import os
 import azure.storage.blob
 import numpy
