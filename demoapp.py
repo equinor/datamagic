@@ -19,14 +19,29 @@ print(f"--- Connected to storage blob: {sku_name} / {account_kind}")
 input()
 
 #
+# Get a list of all files
+#
+
+nfiles = 0
+nbytes = 0
+with open("files.dat", 'w') as f:
+    for blob in container.list_blobs():
+        nfiles += 1
+        nbytes += blob.size
+        print(f"{blob.size:<20} {blob.name}", file=f)
+
+print(f"--- Found {nfiles} files in storage blob ({nbytes/(1024.0*1024):.2f} MB)")
+input()
+
+#
 # Get list of all LAS files
 #
 
-files = []
+lasfiles = []
 for blob in container.list_blobs():
     if blob.name.endswith(".LAS"):
-        files.append(blob.name)
-print(f"--- Found {len(files)} LAS files")
+        lasfiles.append(blob.name)
+print(f"--- Found {len(lasfiles)} LAS files")
 input()
 
 #
@@ -34,7 +49,7 @@ input()
 #
 
 filepath = None
-for name in files:
+for name in lasfiles:
     if name.endswith("TZV_TIME_SYNSEIS_2020-01-17_2.LAS"):
         filepath = name
         break
@@ -58,7 +73,7 @@ input()
 #
 
 filename = os.path.basename(filepath)
-with open(filename, "w") as f:
+with open(filename, 'w') as f:
     for line in lines:
         print(line, file=f)
 print(f"--- Wrote all lines to {filename}")
