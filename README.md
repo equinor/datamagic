@@ -1,4 +1,4 @@
-# Data Magic with Python - an introduction
+# Data Magic with Python (for interns) - an introduction
 
 Requirement for attending:
 - you have a GitHub account connected to the Equinor organization
