@@ -1,16 +1,22 @@
+"""My tool for working with LAS files in an azure storage container."""
+
 import os
+import sys
 import azure.storage.blob
 
 
 def get_container_url():
+    """Get url for a container."""
     return os.environ['CONTAINER_URL']
 
 
 def get_container_from_url(url):
+    """Create container from a url."""
     return azure.storage.blob.ContainerClient.from_container_url(url)
 
 
 def get_list_of_lasfiles(container):
+    """Get list of LAS files in a container."""
     files = []
     for blob in container.list_blobs():
         if blob.name.upper().endswith('.LAS'):
@@ -19,9 +25,22 @@ def get_list_of_lasfiles(container):
 
 
 def print_list_of_lasfiles(container):
+    """Print pretty directory listing LAS file in container."""
     files = get_list_of_lasfiles(container)
     for name in files:
         print(name)
+
+
+def read_lasfile(container, filename):
+    """Read given LAS file from container."""
+    if not filename.upper().endswith('.LAS'):
+        raise OSError("Probably not a LAS file")
+    blob_client = container.get_blob_client(filename)
+    data = blob_client.download_blob().content_as_bytes()
+    lines = []
+    for line in data.splitlines():
+        lines.append(line.decode("ascii", errors='ignore'))
+    return lines
 
 
 def find_section_index(lines, prefix):
@@ -39,47 +58,77 @@ def get_header_section(lines):
     return lines[:find_section_index(lines, '~A')]
 
 
+def get_data_section(lines):
+    """Return the lines for the data section."""
+    return lines[find_section_index(lines, '~A')+1:]
+
+
 def print_header_section(lines):
     """Print the header section."""
     for line in get_header_section(lines):
         print(line)
 
 
-
-def get_data_section(lines):
-    idx = find_section_index(lines, '~A')
-    return lines[idx+1:]
-
-
 def print_data_section(lines):
-    data_section_lines = get_data_section(lines)
-    for line in data_section_lines:
+    """Print the data section."""
+    for line in get_data_section(lines):
         print(line)
 
 
-def read_lasfile(container, filename):
-    """Read given LAS file from container."""
-    if not filename.upper().endswith('.LAS'):
-        raise OSError("Probably not a LAS file")
-    blob_client = container.get_blob_client(filename)
-    data = blob_client.download_blob().content_as_bytes()
-    lines = []
-    for line in data.splitlines():
-        lines.append(line.decode("ascii", errors='ignore'))
-    return lines
+def print_helpmessage():
+    """Print help message."""
+    print("usage: mylastool.py <command> [file]")
+    print("examples:")
+    print("    python mylastool.py list")
+    print("    python mylastool.py header A/B/C.LAS")
+    print("    python mylastool.py data   A/B/C.LAS")
+    print("also, remember to set CONTAINER_URL")
 
 
-def main():
+def main(argv):
+    """Parse a list of arguments and do magic."""
+    if len(argv) < 2:
+        print_helpmessage()
+        return 1
+
+    command = argv[1]
+
+    if command not in ('list', 'header', 'data'):
+        print('error: unknown command')
+        print_helpmessage()
+        return 1
+
     url = get_container_url()
     container = get_container_from_url(url)
-    #print_list_of_lasfiles(container)
 
-    lasfile = '31_5-7 Eos/07.Borehole_Seismic/TZV_TIME_SYNSEIS_2020-01-17_2.LAS'
+    if command == 'list':
+        print_list_of_lasfiles(container)
+        return 0
+
+    if len(argv) < 3:
+        print('error: expected a filename')
+        print_helpmessage()
+        return 1
+
+    lasfile = argv[2]
     lines = read_lasfile(container, lasfile)
-    #for line in lines:
-    #    print(line)
-    print_header_section(lines)
+
+    if command == 'header':
+        print_header_section(lines)
+        return 0
+
+    if command == 'data':
+        print_data_section(lines)
+        return 0
+
+    print('Huh?')
+    print_helpmessage()
+    return 1
 
 
 if __name__ == '__main__':
-    main()
+    sys.exit(main(sys.argv))
+
+# References:
+# https://www.cwls.org/wp-content/uploads/2017/02/Las2_Update_Feb2017.pdf
+# https://docs.microsoft.com/en-us/python/api/azure-storage-blob/?view=azure-python
